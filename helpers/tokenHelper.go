@@ -44,12 +44,12 @@ func GenerateAllTokens(email, fname, lname, phno, userId, userType string) (toke
 		},
 	}
 
-	token, err = jwt.NewWithClaims(jwt.SigningMethodES256, claims).SignedString(secretKey)
-	refresh_token, err = jwt.NewWithClaims(jwt.SigningMethodES256, refreshClaims).SignedString(secretKey)
+	token, err = jwt.NewWithClaims(jwt.SigningMethodHS256, claims).SignedString([]byte(secretKey))
+	refresh_token, err = jwt.NewWithClaims(jwt.SigningMethodHS256, refreshClaims).SignedString([]byte(secretKey))
 
 	if err != nil {
-		log.Panic(err)
-		return
+		log.Fatal(err)
+		return "", "", err
 	}
 
 	return token, refresh_token, err

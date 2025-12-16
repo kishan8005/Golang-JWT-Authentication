@@ -85,7 +85,11 @@ func Signup() gin.HandlerFunc {
 		user.Upadted_at = time.Now()
 		user.ID = primitive.NewObjectID()
 		user.User_id = user.ID.Hex()
-		token, refreshToken, _ := helper.GenerateAllTokens(user.Email, user.First_name, user.Last_name, user.Phone, user.User_id, user.User_type)
+		token, refreshToken, err := helper.GenerateAllTokens(user.Email, user.First_name, user.Last_name, user.Phone, user.User_id, user.User_type)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to generate tokens"})
+			return
+		}
 		user.Token = token
 		user.Refresh_token = refreshToken
 
@@ -110,11 +114,12 @@ func Login() gin.HandlerFunc {
 		}
 
 		if err := userCollection.FindOne(ctx, bson.M{"email": user.Email}).Decode(&foundUser); err != nil {
+			log.Fatal(err)
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "email or password is incorrect"})
 			return
 		}
 
-		passwordValid, msg := VerifyPassword(user.Password, foundUser.Password)
+		passwordValid, msg := VerifyPassword(foundUser.Password, user.Password)
 		if !passwordValid {
 			c.JSON(http.StatusBadRequest, gin.H{"error": msg})
 			return
